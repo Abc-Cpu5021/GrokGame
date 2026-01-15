@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoFlap - Geometric Flappy Bird</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Orbitron', monospace;
+      color: white;
+      user-select: none;
+    }
+    #gameCanvas {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+    .screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      z-index: 10;
+      text-align: center;
+    }
+    #menu h1 {
+      font-size: clamp(2.5em, 8vw, 4em);
+      margin: 0 0 20px 0;
+      background: linear-gradient(45deg, #00ff88, #00ccff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 40px #00ff88;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 10px #00ff88); }
+      to { filter: drop-shadow(0 0 30px #00ff88); }
+    }
+    #menu p {
+      font-size: 1.3em;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+    .shape-selector {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 50px;
+      max-width: 500px;
+    }
+    .shape {
+      width: 100px;
+      height: 100px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .shape::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: rotate(45deg);
+      transition: all 0.5s;
+      opacity: 0;
+    }
+    .shape:hover::before {
+      animation: shine 1.5s infinite;
+      opacity: 1;
+    }
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    .shape:hover {
+      transform: scale(1.15) rotate(10deg);
+      box-shadow: 0 25px 50px rgba(255,255,255,0.4);
+    }
+    .shape.selected {
+      transform: scale(1.3) rotate(0deg);
+      box-shadow: 0 0 60px #00ff88, 0 20px 50px rgba(0,0,0,0.8) !important;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 60px #00ff88, 0 20px 50px rgba(0,0,0,0.8); }
+      50% { box-shadow: 0 0 100px #00ff88, 0 0 150px #00ff88, 0 20px 50px rgba(0,0,0,0.8); }
+    }
+    .shape0 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      clip-path: circle(48% at 50% 50%);
+    }
+    .shape1 {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      clip-path: polygon(20% 0%, 80% 0%, 80% 80%, 20% 80%);
+    }
+    .shape2 {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+    .shape3 {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      clip-path: polygon(50% 15%, 85% 50%, 50% 85%, 15% 50%);
+    }
+    #start, #restart, #toMenu {
+      padding: 20px 60px;
+      font-size: 1.4em;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    #start {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      box-shadow: 0 15px 35px rgba(255,107,107,0.4);
+    }
+    #start:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 50px rgba(255,107,107,0.6);
+    }
+    #gameOver {
+      background: rgba(0, 0, 0, 0.9);
+    }
+    #gameOver h1 {
+      font-size: clamp(2.5em, 10vw, 5em);
+      color: #ff4757;
+      margin: 0 0 40px;
+      text-shadow: 0 0 50px #ff4757;
+      animation: shake 0.5s infinite;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    #gameOver p {
+      font-size: 2em;
+      margin: 15px 0;
+      opacity: 0.95;
+    }
+    #restart {
+      background: linear-gradient(45deg, #ffa726, #ff7043);
+      box-shadow: 0 15px 35px rgba(255,167,38,0.4);
+      margin-right: 20px;
+    }
+    #restart:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 50px rgba(255,167,38,0.6);
+    }
+    #toMenu {
+      background: linear-gradient(45deg, #a55eea, #7b68ee);
+      box-shadow: 0 15px 35px rgba(165,94,234,0.4);
+    }
+    #toMenu:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 50px rgba(165,94,234,0.6);
+    }
+    .btn-row {
+      display: flex;
+      gap: 25px;
+    }
+    @media (max-width: 600px) {
+      .shape-selector { gap: 20px; }
+      .shape { width: 80px; height: 80px; }
+      .btn-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="menu" class="screen">
+    <h1>GeoFlap</h1>
+    <p>Choose your geometric hero</p>
+    <div class="shape-selector">
+      <div class="shape shape0" data-shape="0"></div>
+      <div class="shape shape1" data-shape="1"></div>
+      <div class="shape shape2" data-shape="2"></div>
+      <div class="shape shape3" data-shape="3"></div>
+    </div>
+    <button id="start">🚀 Start Game</button>
+  </div>
+  <div id="gameOver" class="screen" style="display: none;">
+    <h1>Game Over!</h1>
+    <p>Score: <span id="finalScore">0</span></p>
+    <p>High Score: <span id="highScore">0</span></p>
+    <div class="btn-row">
+      <button id="restart">🔄 Play Again</button>
+      <button id="toMenu">🏠 Menu</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const menu = document.getElementById('menu');
+    const gameOver = document.getElementById('gameOver');
+    const startBtn = document.getElementById('start');
+    const restartBtn = document.getElementById('restart');
+    const toMenuBtn = document.getElementById('toMenu');
+
+    // Game constants
+    const GRAVITY = 1800;
+    const JUMP_FORCE = -420;
+    const PIPE_SPEED = 220;
+    const PIPE_WIDTH = 72;
+    const PIPE_GAP_MIN = 160;
+    const PIPE_GAP_MAX = 220;
+    const PIPE_MIN_HEIGHT = 100;
+    const PLAYER_SIZE = 24;
+    const COIN_R = 16;
+    const PIPE_SPAWN_DIST = 380;
+
+    // Game state
+    let state = 'menu';
+    let selectedShape = 0;
+    let highScore = 0;
+    let prevTime = 0;
+    let player = { x: 0, y: 0, vy: 0, rot: 0, size: PLAYER_SIZE };
+    let pipes = [];
+    let coins = [];
+    let pipesPassed = 0;
+    let coinsCollected = 0;
+    let stars1 = [];
+    let stars2 = [];
+
+    // Shapes
+    const shapes = [
+      {
+        name: 'Circle',
+        color: '#667eea',
+        draw: (ctx, x, y, size, rot, color) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(0, 0, size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+      },
+      {
+        name: 'Square',
+        color: '#f093fb',
+        draw: (ctx, x, y, size, rot, color) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 20;
+          const s = size * 1.35;
+          ctx.fillStyle = color;
+          ctx.fillRect(-s / 2, -s / 2, s, s);
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+      },
+      {
+        name: 'Triangle',
+        color: '#4facfe',
+        draw: (ctx, x, y, size, rot, color) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(0, -size * 1.1);
+          ctx.lineTo(-size * 1.1, size * 0.85);
+          ctx.lineTo(size * 1.1, size * 0.85);
+          ctx.closePath();
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+      },
+      {
+        name: 'Diamond',
+        color: '#43e97b',
+        draw: (ctx, x, y, size, rot, color) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(0, -size);
+          ctx.lineTo(size * 0.95, 0);
+          ctx.lineTo(0, size);
+          ctx.lineTo(-size * 0.95, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+      }
+    ];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      player.x = Math.min(canvas.width * 0.15, 150);
+      player.y = canvas.height / 2;
+    }
+
+    function initStars() {
+      stars1 = [];
+      stars2 = [];
+      for (let i = 0; i < 100; i++) {
+        stars1.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: -(15 + Math.random() * 25),
+          size: 0.8 + Math.random() * 1.5,
+          alpha: 0.5 + Math.random() * 0.4
+        });
+      }
+      for (let i = 0; i < 60; i++) {
+        stars2.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: -(45 + Math.random() * 60),
+          size: 0.4 + Math.random() * 1,
+          alpha: 0.2 + Math.random() * 0.4
+        });
+      }
+    }
+
+    function updateStars(dt) {
+      [stars1, stars2].forEach(stars => {
+        stars.forEach(star => {
+          star.x += star.vx * dt;
+          if (star.x < 0) star.x = canvas.width;
+        });
+      });
+    }
+
+    function drawBackground() {
+      // Night sky gradient
+      const bgGrd = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bgGrd.addColorStop(0, '#0c0c2a');
+      bgGrd.addColorStop(0.4, '#1a1a4a');
+      bgGrd.addColorStop(0.7, '#0a0a28');
+      bgGrd.addColorStop(1, '#000');
+      ctx.fillStyle = bgGrd;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Stars layer 1
+      ctx.save();
+      stars1.forEach(star => {
+        ctx.globalAlpha = star.alpha;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Stars layer 2
+      stars2.forEach(star => {
+        ctx.globalAlpha = star.alpha;
+        ctx.fillStyle = '#88ddff';
+        ctx.shadowColor = '#88ddff';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    function jump() {
+      if (state === 'playing') {
+        player.vy = JUMP_FORCE;
+      }
+    }
+
+    function resetGame() {
+      player.y = canvas.height / 2;
+      player.vy = 0;
+      player.rot = 0;
+      pipes = [];
+      coins = [];
+      pipesPassed = 0;
+      coinsCollected = 0;
+    }
+
+    function spawnPipe() {
+      const gapSize = PIPE_GAP_MIN + Math.random() * (PIPE_GAP_MAX - PIPE_GAP_MIN);
+      const topHeight = PIPE_MIN_HEIGHT + Math.random() * (canvas.height - gapSize - 2 * PIPE_MIN_HEIGHT);
+      const bottomHeight = canvas.height - topHeight - gapSize;
+      const pipe = { x: canvas.width + 50, topHeight, bottomHeight, passed: false };
+      pipes.push(pipe);
+
+      // Random coin in gap
+      if (Math.random() < 0.65) {
+        const coinY = topHeight + gapSize / 2;
+        coins.push({ x: pipe.x + PIPE_WIDTH / 2 + Math.random() * 80, y: coinY, r: COIN_R, collected: false });
+      }
+    }
+
+    function update(dt) {
+      // Update player
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      player.rot = Math.max(Math.min(player.vy * 0.008, 0.4), -0.4);
+
+      // Boundaries
+      if (player.y + player.size > canvas.height || player.y - player.size < 0) {
+        endGame();
+        return;
+      }
+
+      // Update pipes
+      pipes.forEach(pipe => {
+        pipe.x -= PIPE_SPEED * dt;
+        if (!pipe.passed && player.x > pipe.x + PIPE_WIDTH) {
+          pipe.passed = true;
+          pipesPassed++;
+        }
+      });
+      pipes = pipes.filter(pipe => pipe.x + PIPE_WIDTH > -100);
+
+      // Spawn pipes
+      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - PIPE_SPAWN_DIST) {
+        spawnPipe();
+      }
+
+      // Update coins
+      coins.forEach(coin => {
+        coin.x -= PIPE_SPEED * dt;
+        const dx = player.x - coin.x;
+        const dy = player.y - coin.y;
+        if (!coin.collected && Math.hypot(dx, dy) < player.size + coin.r) {
+          coin.collected = true;
+          coinsCollected++;
+        }
+      });
+      coins = coins.filter(coin => !coin.collected && coin.x + coin.r > -100);
+
+      // Collisions with pipes
+      for (const pipe of pipes) {
+        // Top pipe
+        if (
+          player.x + player.size > pipe.x &&
+          player.x - player.size < pipe.x + PIPE_WIDTH &&
+          player.y - player.size < pipe.topHeight
+        ) {
+          endGame();
+          return;
+        }
+        // Bottom pipe
+        const bottomY = canvas.height - pipe.bottomHeight;
+        if (
+          player.x + player.size > pipe.x &&
+          player.x - player.size < pipe.x + PIPE_WIDTH &&
+          player.y + player.size > bottomY
+        ) {
+          endGame();
+          return;
+        }
+      }
+    }
+
+    function drawGame() {
+      // Draw pipes
+      pipes.forEach(pipe => {
+        // Top pipe gradient
+        const topGrd = ctx.createLinearGradient(pipe.x + PIPE_WIDTH / 2, 0, pipe.x + PIPE_WIDTH / 2, pipe.topHeight);
+        topGrd.addColorStop(0, '#00ff88');
+        topGrd.addColorStop(0.6, '#00cc66');
+        topGrd.addColorStop(1, '#008844');
+        ctx.fillStyle = topGrd;
+        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+
+        // Bottom pipe gradient
+        const bottomY = canvas.height - pipe.bottomHeight;
+        const botGrd = ctx.createLinearGradient(pipe.x + PIPE_WIDTH / 2, bottomY, pipe.x + PIPE_WIDTH / 2, canvas.height);
+        botGrd.addColorStop(0, '#00ff88');
+        botGrd.addColorStop(0.6, '#00cc66');
+        botGrd.addColorStop(1, '#008844');
+        ctx.fillStyle = botGrd;
+        ctx.fillRect(pipe.x, bottomY, PIPE_WIDTH, pipe.bottomHeight);
+
+        // Pipe glow/border
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 15;
+        ctx.fillRect(pipe.x - 2, 0, PIPE_WIDTH + 4, pipe.topHeight);
+        ctx.fillRect(pipe.x - 2, bottomY, PIPE_WIDTH + 4, pipe.bottomHeight);
+        ctx.shadowBlur = 0;
+      });
+
+      // Draw coins
+      coins.forEach(coin => {
+        if (!coin.collected) {
+          const coinGrd = ctx.createRadialGradient(coin.x - coin.r / 3, coin.y - coin.r / 3, 0, coin.x, coin.y, coin.r);
+          coinGrd.addColorStop(0, '#ffffaa');
+          coinGrd.addColorStop(0.6, '#ffdd66');
+          coinGrd.addColorStop(1, '#ccaa00');
+          ctx.fillStyle = coinGrd;
+          ctx.shadowColor = '#ffffaa';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Coin shine
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          ctx.beginPath();
+          ctx.arc(coin.x - coin.r / 3, coin.y - coin.r / 3, coin.r / 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Border
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = '#fff';
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+      });
+
+      // Draw player
+      shapes[selectedShape].draw(ctx, player.x, player.y, player.size, player.rot, shapes[selectedShape].color);
+
+      // Draw score
+      const score = pipesPassed * 10 + coinsCollected * 50;
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.shadowColor = 'white';
+      ctx.shadowBlur = 10;
+      ctx.font = 'bold 64px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(score.toString(), canvas.width / 2, 40);
+
+      // Coins indicator
+      ctx.font = 'bold 36px Orbitron, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`💰 ${coinsCollected}`, canvas.width - 60, 50);
+
+      ctx.shadowBlur = 0;
+    }
+
+    function endGame() {
+      const finalScore = pipesPassed * 10 + coinsCollected * 50;
+      if (finalScore > highScore) {
+        highScore = finalScore;
+        localStorage.setItem('geoFlapHighScore', highScore);
+      }
+      document.getElementById('finalScore').textContent = finalScore;
+      document.getElementById('highScore').textContent = highScore;
+      gameOver.style.display = 'flex';
+      state = 'gameover';
+    }
+
+    function selectShape(idx) {
+      selectedShape = idx;
+      localStorage.setItem('geoFlapShape', idx);
+      document.querySelectorAll('.shape').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`[data-shape="${idx}"]`).classList.add('selected');
+    }
+
+    function startGame() {
+      menu.style.display = 'none';
+      resetGame();
+      state = 'playing';
+    }
+
+    function restartGame() {
+      gameOver.style.display = 'none';
+      resetGame();
+      state = 'playing';
+    }
+
+    function goToMenu() {
+      gameOver.style.display = 'none';
+      menu.style.display = 'flex';
+      state = 'menu';
+    }
+
+    // Event listeners
+    startBtn.onclick = startGame;
+    restartBtn.onclick = restartGame;
+    toMenuBtn.onclick = goToMenu;
+
+    document.querySelectorAll('.shape').forEach((el, idx) => {
+      el.onclick = () => selectShape(idx);
+    });
+
+    // Controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        jump();
+      }
+    });
+    canvas.addEventListener('click', (e) => {
+      e.preventDefault();
+      jump();
+    });
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      jump();
+    });
+
+    window.addEventListener('resize', resize);
+
+    // Init
+    resize();
+    initStars();
+    highScore = parseInt(localStorage.getItem('geoFlapHighScore') || '0');
+    selectedShape = parseInt(localStorage.getItem('geoFlapShape') || '0');
+    selectShape(selectedShape);
+
+    // Game loop
+    function gameLoop(time) {
+      const dt = Math.min((time - prevTime) / 1000, 0.05); // Cap dt
+      prevTime = time;
+
+      drawBackground();
+      updateStars(dt);
+
+      if (state === 'playing') {
+        update(dt);
+        drawGame();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
