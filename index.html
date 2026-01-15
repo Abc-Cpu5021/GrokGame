@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BrainRot Draw - Remastered</title>
+  <title>BrainRot Draw</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0a0015;
       --accent: #00ff9d;
-      --accent-dark: #00cc7a;
       --pink: #ff00aa;
       --purple: #9d00ff;
       --text: #f0f0ff;
-      --card: rgba(20, 10, 40, 0.7);
+      --card: rgba(20, 10, 40, 0.75);
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -23,56 +22,47 @@
       min-height: 100vh;
       overflow: hidden;
     }
-    .screen {
-      position: fixed;
-      inset: 0;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(12px);
-      background: rgba(10, 5, 20, 0.65);
+    .screen { 
+      position: fixed; inset: 0; 
+      display: none; flex-direction: column; 
+      align-items: center; justify-content: center; 
+      padding: 20px; backdrop-filter: blur(12px); 
+      background: rgba(10,5,20,0.65);
     }
     .screen.active { display: flex; }
     h1 {
-      font-size: clamp(2.8rem, 9vw, 5.5rem);
+      font-size: clamp(2.5rem, 9vw, 5rem);
       background: linear-gradient(90deg, var(--pink), var(--accent), #00aaff);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 0 30px rgba(0,255,157,0.6);
-      animation: glow 3s ease-in-out infinite alternate;
+      margin-bottom: 1.2rem;
+      text-shadow: 0 0 30px rgba(0,255,157,0.5);
     }
-    @keyframes glow { from {text-shadow:0 0 20px rgba(0,255,157,0.4);} to {text-shadow:0 0 40px rgba(0,255,157,0.8);} }
-
     .btn {
-      padding: 14px 38px;
-      font-size: 1.2rem;
+      padding: 14px 36px;
+      font-size: 1.15rem;
       font-weight: 700;
       border: none;
       border-radius: 50px;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.25s;
       box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-      letter-spacing: 1px;
-      margin: 12px;
+      margin: 10px;
     }
     .btn-primary  { background: linear-gradient(45deg, var(--accent), #00d4ff); color:#000; }
-    .btn-secondary{ background: linear-gradient(45deg, var(--purple), var(--pink)); }
+    .btn-secondary{ background: linear-gradient(45deg, var(--purple), var(--pink)); color:white; }
     .btn-danger   { background: linear-gradient(45deg, #ff3366, #ff6b6b); }
-    .btn:hover    { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,255,157,0.4); }
+    .btn:hover    { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,255,157,0.4); }
 
-    input, button { font-family: inherit; }
     input {
-      padding: 14px 24px;
+      padding: 14px 20px;
       font-size: 1.1rem;
       border: 2px solid var(--accent);
       border-radius: 50px;
       background: rgba(255,255,255,0.08);
       color: white;
-      width: 280px;
+      width: 260px;
       max-width: 90vw;
       text-align: center;
     }
@@ -80,62 +70,50 @@
 
     .card {
       background: var(--card);
-      border-radius: 24px;
-      padding: 28px 32px;
-      width: min(90vw, 480px);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0,255,157,0.18);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      border-radius: 20px;
+      padding: 24px 28px;
+      width: min(90vw, 460px);
+      border: 1px solid rgba(0,255,157,0.2);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
     }
 
     .code-big {
       font-family: 'Roboto Mono', monospace;
-      font-size: 4.5rem;
+      font-size: 4.2rem;
       font-weight: 900;
       color: var(--accent);
-      letter-spacing: 12px;
-      text-shadow: 0 0 40px var(--accent);
+      letter-spacing: 10px;
+      text-shadow: 0 0 35px var(--accent);
       margin: 1rem 0;
     }
 
     .players-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-      margin: 1.5rem 0;
-      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 14px;
+      margin: 1.4rem 0;
     }
     .player-tag {
-      background: rgba(0,255,157,0.12);
+      background: rgba(0,255,157,0.1);
       border-radius: 50px;
-      padding: 12px 20px;
+      padding: 10px 18px;
       text-align: center;
-      font-weight: 500;
       border: 1px solid rgba(0,255,157,0.3);
     }
     .player-tag.host {
-      background: linear-gradient(45deg, rgba(255,0,170,0.3), rgba(0,255,157,0.3));
+      background: linear-gradient(45deg, rgba(255,0,170,0.25), rgba(0,255,157,0.25));
       border-color: var(--pink);
-      font-weight: 700;
-    }
-
-    #gameArea {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 20px;
+      font-weight: bold;
     }
 
     #drawingCanvas {
-      width: min(90vw, 720px);
-      height: min(60vh, 720px);
+      width: min(90vw, 700px);
+      height: min(55vh, 700px);
       border: 4px solid var(--accent);
-      border-radius: 16px;
-      box-shadow: 0 0 60px rgba(0,255,157,0.4);
-      background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23f8f9fa"/><path d="M0 20h40M20 0v40" stroke="%23e0e0e0" stroke-width="1"/></svg>') repeat;
+      border-radius: 14px;
+      box-shadow: 0 0 50px rgba(0,255,157,0.35);
+      background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23f9f9f9"/><path d="M0 20h40M20 0v40" stroke="%23e8e8e8" stroke-width="1"/></svg>') repeat;
       touch-action: none;
     }
 
@@ -143,528 +121,501 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       background: var(--card);
-      padding: 20px 30px;
-      border-radius: 30px;
-      border: 1px solid rgba(0,255,157,0.2);
+      padding: 18px 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(0,255,157,0.15);
     }
-    .tool-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .tool-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .tool-btn {
-      width: 64px; height: 64px;
+      width: 60px; height: 60px;
       border-radius: 50%;
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       border: none;
       cursor: pointer;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.4);
       transition: all 0.2s;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
-    .tool-btn.active { transform: scale(1.15); box-shadow: 0 0 30px var(--accent); }
+    .tool-btn.active { transform: scale(1.12); box-shadow: 0 0 28px var(--accent); }
 
     #timer {
-      font-size: clamp(3rem, 10vw, 6rem);
+      font-size: clamp(2.8rem, 9vw, 5.5rem);
       font-weight: 900;
       color: var(--accent);
-      text-shadow: 0 0 40px var(--accent);
-      margin: 1rem 0;
+      text-shadow: 0 0 35px var(--accent);
+      margin: 0.8rem 0;
     }
 
-    .stars {
-      font-size: 3rem;
-      cursor: pointer;
-      user-select: none;
-      letter-spacing: 6px;
-    }
-    .star { color: #444; transition: color 0.2s; }
-    .star.active { color: #ffd700; text-shadow: 0 0 15px #ffd700; }
+    .stars { font-size: 2.8rem; cursor: pointer; letter-spacing: 5px; user-select: none; }
+    .star { color: #555; }
+    .star.active { color: #ffd700; text-shadow: 0 0 12px #ffd700; }
 
     #status {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
+      position: fixed; bottom: 16px; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.7);
-      padding: 12px 28px;
+      background: rgba(0,0,0,0.75);
+      padding: 10px 24px;
       border-radius: 50px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       z-index: 999;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0,255,157,0.3);
+      border: 1px solid rgba(0,255,157,0.25);
     }
 
     @media (max-width: 600px) {
-      .tools-bar { flex-direction: column; align-items: center; gap: 16px; }
+      .tools-bar { flex-direction: column; gap: 16px; }
       .players-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Screens -->
-  <div id="menu" class="screen active">
-    <h1>🧠 BRAINROT DRAW</h1>
-    <div class="card">
-      <p style="text-align:center; margin-bottom:1.5rem; font-size:1.3rem;">
-        Total Stars: <strong id="totalStars">0</strong> ⭐
-      </p>
-      <input id="playerName" type="text" placeholder="Your nickname..." maxlength="14"/>
-      <div style="margin-top:2rem; text-align:center;">
-        <button id="createLobby" class="btn btn-primary">Create Lobby</button>
-        <button id="joinLobby"   class="btn btn-secondary">Join with Code</button>
+<div id="menu" class="screen active">
+  <h1>🧠 BRAINROT DRAW</h1>
+  <div class="card">
+    <p style="text-align:center; margin-bottom:1.4rem;">
+      Total Stars: <strong id="totalStars">0</strong> ⭐
+    </p>
+    <input id="playerName" type="text" placeholder="Your nickname..." maxlength="14"/>
+    <div style="margin-top:1.8rem; text-align:center;">
+      <button id="createLobby" class="btn btn-primary">Create Lobby</button>
+      <button id="joinLobby"   class="btn btn-secondary">Join with Code</button>
+    </div>
+  </div>
+</div>
+
+<div id="joinScreen" class="screen">
+  <h1>Join Lobby</h1>
+  <div class="card">
+    <input id="lobbyCode" type="text" placeholder="12345" maxlength="5" style="font-size:2.2rem; letter-spacing:6px;"/>
+    <button id="joinBtn" class="btn btn-primary" style="margin-top:1.8rem;">Join</button>
+  </div>
+</div>
+
+<div id="lobbyScreen" class="screen">
+  <h1>Lobby</h1>
+  <div class="card">
+    <div style="text-align:center; margin-bottom:0.8rem;">Share this code:</div>
+    <div class="code-big" id="lobbyCodeDisplay">.....</div>
+    <div style="margin:1.2rem 0; text-align:center;">Players:</div>
+    <div id="playersList" class="players-grid"></div>
+    <button id="startGame" class="btn btn-primary" style="display:none; margin-top:1.4rem;">START GAME 🚀</button>
+    <button id="leaveLobby" class="btn btn-danger" style="margin-top:0.8rem;">Leave</button>
+  </div>
+</div>
+
+<div id="drawingScreen" class="screen">
+  <h1>Draw the Brainrot!</h1>
+  <div id="timer">03:00</div>
+  <div id="gameArea" style="flex:1; width:100%; display:flex; flex-direction:column; align-items:center; gap:16px; padding:16px;">
+    <div class="tools-bar">
+      <div class="tool-group">
+        <button id="pencilBtn" class="tool-btn active">✏️</button>
+        <label>Size</label>
+        <input id="pencilSize" type="range" min="2" max="60" value="6"/>
+        <span id="pencilSizeVal">6</span>
       </div>
-    </div>
-  </div>
-
-  <div id="joinScreen" class="screen">
-    <h1>Join Lobby</h1>
-    <div class="card">
-      <input id="lobbyCode" type="text" placeholder="XXXX" maxlength="4" style="text-transform:uppercase; font-size:2rem; letter-spacing:8px;"/>
-      <button id="joinBtn" class="btn btn-primary" style="margin-top:2rem;">Join Game</button>
-    </div>
-  </div>
-
-  <div id="lobbyScreen" class="screen">
-    <h1>Lobby</h1>
-    <div class="card">
-      <div style="text-align:center; margin-bottom:1rem;">Share this code:</div>
-      <div class="code-big" id="lobbyCodeDisplay">....</div>
-      <div style="margin:1.5rem 0; text-align:center;">Players:</div>
-      <div id="playersList" class="players-grid"></div>
-      <button id="startGame" class="btn btn-primary" style="display:none; margin-top:1.5rem;">START GAME 🚀</button>
-      <button id="leaveLobby" class="btn btn-danger" style="margin-top:1rem;">Leave</button>
-    </div>
-  </div>
-
-  <div id="drawingScreen" class="screen">
-    <h1 id="drawTitle">Draw the Brainrot!</h1>
-    <div id="timer">03:00</div>
-
-    <div id="gameArea">
-      <div class="tools-bar">
-        <div class="tool-group">
-          <button id="pencilBtn" class="tool-btn active">✏️</button>
-          <label>Size</label>
-          <input id="pencilSize" type="range" min="2" max="60" value="6"/>
-          <span id="pencilSizeVal">6</span>
-        </div>
-
-        <div class="tool-group">
-          <button id="eraserBtn" class="tool-btn">🧼</button>
-          <label>Size</label>
-          <input id="eraserSize" type="range" min="8" max="120" value="24"/>
-          <span id="eraserSizeVal">24</span>
-        </div>
-
-        <div class="tool-group">
-          <input id="colorPicker" type="color" value="#000000"/>
-          <span>Color</span>
-        </div>
-
-        <button id="clearCanvas" class="btn btn-secondary">Clear All</button>
+      <div class="tool-group">
+        <button id="eraserBtn" class="tool-btn">🧼</button>
+        <label>Size</label>
+        <input id="eraserSize" type="range" min="8" max="120" value="24"/>
+        <span id="eraserSizeVal">24</span>
       </div>
-
-      <canvas id="drawingCanvas"></canvas>
-      <img id="refImg" style="max-width:80vw; max-height:35vh; border-radius:16px; box-shadow:0 0 50px #ff00aa; display:none;"/>
+      <div class="tool-group">
+        <input id="colorPicker" type="color" value="#000000"/>
+        <span>Color</span>
+      </div>
+      <button id="clearCanvas" class="btn btn-secondary">Clear</button>
     </div>
-
-    <button id="submitDrawing" class="btn btn-primary" style="margin-top:1.5rem; display:none;">Submit Drawing →</button>
+    <canvas id="drawingCanvas"></canvas>
+    <img id="refImg" style="max-width:80vw; max-height:30vh; border-radius:12px; box-shadow:0 0 40px #ff00aa; display:none;"/>
   </div>
+  <button id="submitDrawing" class="btn btn-primary" style="margin-top:1rem; display:none;">Submit Drawing</button>
+</div>
 
-  <div id="ratingScreen" class="screen">
-    <h1>Rate the Masterpieces!</h1>
-    <p style="margin:1rem 0; opacity:0.9;">(not your own drawing)</p>
-    <div id="ratingGrid" style="display:flex; flex-wrap:wrap; gap:24px; justify-content:center; max-width:95vw; overflow-y:auto; max-height:65vh; padding:20px;"></div>
-    <button id="submitRatings" class="btn btn-primary" style="margin-top:2rem; display:none;">Send Ratings</button>
-  </div>
+<div id="ratingScreen" class="screen">
+  <h1>Rate Drawings!</h1>
+  <p style="margin:0.8rem 0; opacity:0.9;">(skip your own)</p>
+  <div id="ratingGrid" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; max-width:95vw; max-height:60vh; overflow-y:auto; padding:16px;"></div>
+  <button id="submitRatings" class="btn btn-primary" style="margin-top:1.5rem; display:none;">Send Ratings</button>
+</div>
 
-  <div id="resultsScreen" class="screen">
-    <h1>Results</h1>
-    <div id="resultsList" style="width:min(90vw,600px); max-height:60vh; overflow-y:auto; padding:20px; background:var(--card); border-radius:20px; margin:1.5rem 0;"></div>
-    <button id="backToMenu" class="btn btn-primary">Back to Menu</button>
-  </div>
+<div id="resultsScreen" class="screen">
+  <h1>Results</h1>
+  <div id="resultsList" style="width:min(90vw,580px); max-height:55vh; overflow-y:auto; padding:16px; background:var(--card); border-radius:16px; margin:1.2rem 0;"></div>
+  <button id="backToMenu" class="btn btn-primary">Back to Menu</button>
+</div>
 
-  <div id="status">Connecting...</div>
+<div id="status">Connecting...</div>
 
-  <!-- Firebase (compat for simplicity) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
-  <script>
-    // ────────────────────────────────────────────────
-    //  REPLACE WITH YOUR OWN FIREBASE CONFIG !!!
-    // ────────────────────────────────────────────────
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+<script>
+// ────────────────────────────────────────────────
+//  REPLACE WITH YOUR OWN FIREBASE CONFIG !!!
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// ────────────────────────────────────────────────
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+const brainrotImgs = [
+  'https://i.imgflip.com/9zxkqn.jpg',
+  'https://i.imgflip.com/9dv4gr.jpg',
+  'https://media.tenor.com/Ze4VJGFRfZcAAAAe/skibidi-toilet-brainrot.png',
+  'https://i.pinimg.com/originals/fb/fd/39/fbfd3906510504974f2a7280d81cd536.jpg',
+  'https://brainrotskibidi.neocities.org/skibidi1.jpg',
+];
+
+let myUid = null;
+let playerName = localStorage.getItem('br_name') || '';
+let totalStars = parseInt(localStorage.getItem('br_stars') || '0');
+let currentLobby = null;
+let lobbyRef = null;
+let isHost = false;
+let canvas, ctx, isDrawing = false, tool = 'pencil', lastX, lastY;
+let timerInterval = null;
+
+const els = {
+  totalStars: document.getElementById('totalStars'),
+  playerName: document.getElementById('playerName'),
+  createLobby: document.getElementById('createLobby'),
+  joinLobby: document.getElementById('joinLobby'),
+  lobbyCode: document.getElementById('lobbyCode'),
+  joinBtn: document.getElementById('joinBtn'),
+  lobbyCodeDisplay: document.getElementById('lobbyCodeDisplay'),
+  playersList: document.getElementById('playersList'),
+  startGame: document.getElementById('startGame'),
+  leaveLobby: document.getElementById('leaveLobby'),
+  timer: document.getElementById('timer'),
+  drawingCanvas: document.getElementById('drawingCanvas'),
+  refImg: document.getElementById('refImg'),
+  pencilBtn: document.getElementById('pencilBtn'),
+  eraserBtn: document.getElementById('eraserBtn'),
+  pencilSize: document.getElementById('pencilSize'),
+  eraserSize: document.getElementById('eraserSize'),
+  pencilSizeVal: document.getElementById('pencilSizeVal'),
+  eraserSizeVal: document.getElementById('eraserSizeVal'),
+  colorPicker: document.getElementById('colorPicker'),
+  clearCanvas: document.getElementById('clearCanvas'),
+  submitDrawing: document.getElementById('submitDrawing'),
+  ratingGrid: document.getElementById('ratingGrid'),
+  submitRatings: document.getElementById('submitRatings'),
+  resultsList: document.getElementById('resultsList'),
+  backToMenu: document.getElementById('backToMenu'),
+  status: document.getElementById('status')
+};
+
+if (playerName) els.playerName.value = playerName;
+els.totalStars.textContent = totalStars;
+
+auth.onAuthStateChanged(u => {
+  if (u) {
+    myUid = u.uid;
+    setStatus('Ready');
+  } else {
+    auth.signInAnonymously().catch(console.error);
+  }
+});
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setStatus(msg) {
+  els.status.textContent = msg;
+}
+
+function generate5DigitCode() {
+  return String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+}
+
+function saveLocal() {
+  localStorage.setItem('br_name', playerName);
+  localStorage.setItem('br_stars', totalStars);
+}
+
+// ─── Canvas ───────────────────────────────────────
+function initCanvas() {
+  canvas = els.drawingCanvas;
+  ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const getPos = e => {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: ((e.touches?.[0]?.clientX ?? e.clientX) - r.left) * (canvas.width / r.width),
+      y: ((e.touches?.[0]?.clientY ?? e.clientY) - r.top) * (canvas.height / r.height)
     };
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+  const draw = (x, y, force = false) => {
+    if (!isDrawing && !force) return;
+    ctx.lineWidth = tool === 'pencil' ? +els.pencilSize.value : +els.eraserSize.value;
+    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+    if (tool === 'pencil') ctx.strokeStyle = els.colorPicker.value;
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    lastX = x; lastY = y;
+  };
 
-    // Some funny brainrot images (you can add/replace)
-    const brainrotImgs = [
-      'https://i.imgflip.com/9zxkqn.jpg',
-      'https://i.imgflip.com/9dv4gr.jpg',
-      'https://media.tenor.com/Ze4VJGFRfZcAAAAe/skibidi-toilet-brainrot.png',
-      'https://i.pinimg.com/originals/fb/fd/39/fbfd3906510504974f2a7280d81cd536.jpg',
-      // ... add more
-    ];
+  const down = e => { e.preventDefault(); isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; draw(p.x, p.y, true); };
+  const move = e => { e.preventDefault(); if (!isDrawing) return; const p = getPos(e); draw(p.x, p.y); };
+  const up   = () => isDrawing = false;
 
-    // ─── State ───────────────────────────────────────
-    let myUid = null;
-    let playerName = localStorage.getItem('br_name') || '';
-    let totalStars = parseInt(localStorage.getItem('br_stars') || '0');
-    let currentLobby = null;
-    let lobbyRef = null;
-    let isHost = false;
-    let canvas, ctx, isDrawing = false, tool = 'pencil', lastX, lastY;
+  canvas.addEventListener('mousedown', down);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', up);
+  canvas.addEventListener('mouseout', up);
+  canvas.addEventListener('touchstart', down);
+  canvas.addEventListener('touchmove', move);
+  canvas.addEventListener('touchend', up);
+}
 
-    const els = {
-      totalStars: document.getElementById('totalStars'),
-      playerName: document.getElementById('playerName'),
-      createLobby: document.getElementById('createLobby'),
-      joinLobby: document.getElementById('joinLobby'),
-      lobbyCode: document.getElementById('lobbyCode'),
-      joinBtn: document.getElementById('joinBtn'),
-      lobbyCodeDisplay: document.getElementById('lobbyCodeDisplay'),
-      playersList: document.getElementById('playersList'),
-      startGame: document.getElementById('startGame'),
-      leaveLobby: document.getElementById('leaveLobby'),
-      timer: document.getElementById('timer'),
-      drawingCanvas: document.getElementById('drawingCanvas'),
-      refImg: document.getElementById('refImg'),
-      pencilBtn: document.getElementById('pencilBtn'),
-      eraserBtn: document.getElementById('eraserBtn'),
-      pencilSize: document.getElementById('pencilSize'),
-      eraserSize: document.getElementById('eraserSize'),
-      pencilSizeVal: document.getElementById('pencilSizeVal'),
-      eraserSizeVal: document.getElementById('eraserSizeVal'),
-      colorPicker: document.getElementById('colorPicker'),
-      clearCanvas: document.getElementById('clearCanvas'),
-      submitDrawing: document.getElementById('submitDrawing'),
-      ratingGrid: document.getElementById('ratingGrid'),
-      submitRatings: document.getElementById('submitRatings'),
-      resultsList: document.getElementById('resultsList'),
-      backToMenu: document.getElementById('backToMenu'),
-      status: document.getElementById('status')
+// ─── Tool events ──────────────────────────────────
+els.pencilBtn.onclick = () => { tool = 'pencil'; els.pencilBtn.classList.add('active'); els.eraserBtn.classList.remove('active'); };
+els.eraserBtn.onclick = () => { tool = 'eraser'; els.eraserBtn.classList.add('active'); els.pencilBtn.classList.remove('active'); };
+els.pencilSize.oninput = () => els.pencilSizeVal.textContent = els.pencilSize.value;
+els.eraserSize.oninput = () => els.eraserSizeVal.textContent = els.eraserSize.value;
+els.clearCanvas.onclick = () => {
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+};
+
+// ─── Create Lobby ─────────────────────────────────
+els.createLobby.onclick = () => {
+  playerName = (els.playerName.value.trim() || 'SkibidiFan').slice(0,14);
+  if (!playerName) return alert("Please enter a nickname");
+  saveLocal();
+
+  const code = generate5DigitCode();
+  currentLobby = code;
+  lobbyRef = db.ref(`lobbies/${code}`);
+
+  // Show UI immediately
+  showScreen('lobbyScreen');
+  els.lobbyCodeDisplay.textContent = code;
+  els.playersList.innerHTML = `<div class="player-tag host">👑 ${playerName}</div>`;
+  els.startGame.style.display = 'none';
+  setStatus('Creating lobby...');
+
+  // Write to Firebase
+  lobbyRef.set({
+    host: myUid,
+    players: { [myUid]: playerName },
+    state: 'waiting',
+    code,
+    created: Date.now()
+  }).then(() => {
+    setStatus(`Lobby created! Code: ${code}`);
+    isHost = true;
+    listenToLobby();
+    lobbyRef.onDisconnect().remove();
+  }).catch(err => {
+    setStatus('Failed to create lobby');
+    console.error(err);
+  });
+};
+
+function listenToLobby() {
+  lobbyRef.on('value', snap => {
+    const data = snap.val() || {};
+    if (!data) return;
+
+    const plist = data.players || {};
+    els.playersList.innerHTML = Object.entries(plist).map(([uid, name]) =>
+      `<div class="player-tag ${uid === myUid ? 'host' : ''}">${uid === data.host ? '👑 ' : ''}${name}</div>`
+    ).join('');
+
+    if (isHost && Object.keys(plist).length >= 2) {
+      els.startGame.style.display = 'block';
+    }
+
+    if (data.state === 'drawing') enterDrawing(data.refImgIdx, data.timerStart);
+    if (data.state === 'rating')  enterRating(data.players, data.drawings);
+    if (data.state === 'results') showResults(data.results, data.players);
+  });
+}
+
+// ─── Join ─────────────────────────────────────────
+els.joinLobby.onclick = () => showScreen('joinScreen');
+
+els.joinBtn.onclick = () => {
+  const code = els.lobbyCode.value.trim();
+  if (!/^\d{5}$/.test(code)) return alert('Please enter a valid 5-digit code');
+
+  playerName = (els.playerName.value.trim() || 'Anon').slice(0,14);
+  saveLocal();
+
+  const ref = db.ref(`lobbies/${code}`);
+  ref.once('value').then(snap => {
+    const data = snap.val();
+    if (!data || data.state !== 'waiting') return alert('Lobby not found or already started');
+    if (Object.keys(data.players || {}).length >= 6) return alert('Lobby is full');
+
+    ref.child('players').child(myUid).set(playerName);
+    currentLobby = code;
+    lobbyRef = ref;
+    isHost = false;
+    showScreen('lobbyScreen');
+    listenToLobby();
+  }).catch(() => alert('Error joining lobby'));
+};
+
+els.leaveLobby.onclick = () => {
+  if (lobbyRef) {
+    lobbyRef.child('players').child(myUid).remove();
+    if (isHost) lobbyRef.remove();
+  }
+  currentLobby = lobbyRef = null;
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('menu');
+};
+
+els.startGame.onclick = () => {
+  const idx = Math.floor(Math.random() * brainrotImgs.length);
+  lobbyRef.update({
+    state: 'drawing',
+    refImgIdx: idx,
+    timerStart: Date.now()
+  });
+};
+
+function enterDrawing(idx, startTime) {
+  showScreen('drawingScreen');
+  els.refImg.src = brainrotImgs[idx];
+  els.refImg.style.display = 'block';
+  initCanvas();
+  startTimer(startTime);
+}
+
+function startTimer(startTime) {
+  if (timerInterval) clearInterval(timerInterval);
+
+  const update = () => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = 180 - elapsed;
+    if (remaining <= 0) {
+      els.timer.textContent = '00:00';
+      clearInterval(timerInterval);
+      els.submitDrawing.style.display = 'block'; // show submit button when time ends
+      return;
+    }
+    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const s = (remaining % 60).toString().padStart(2, '0');
+    els.timer.textContent = `${m}:${s}`;
+  };
+
+  update();
+  timerInterval = setInterval(update, 300);
+}
+
+els.submitDrawing.onclick = () => {
+  if (!canvas) return;
+  const dataUrl = canvas.toDataURL('image/png');
+  lobbyRef.child('drawings').child(myUid).set(dataUrl);
+  setStatus('Drawing submitted!');
+};
+
+function enterRating(players, drawings) {
+  showScreen('ratingScreen');
+  els.ratingGrid.innerHTML = '';
+  els.submitRatings.style.display = 'none';
+
+  Object.entries(drawings || {}).forEach(([uid, url]) => {
+    if (uid === myUid) return;
+    const container = document.createElement('div');
+    container.style.textAlign = 'center';
+    container.innerHTML = `
+      <img src="${url}" style="width:200px; height:200px; object-fit:contain; border:3px solid var(--accent); border-radius:10px; background:white;"/>
+      <div class="stars" data-uid="${uid}">
+        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+      </div>
+    `;
+    const starsDiv = container.querySelector('.stars');
+    starsDiv.onclick = e => {
+      if (e.target.tagName !== 'SPAN') return;
+      const idx = Array.from(starsDiv.children).indexOf(e.target);
+      Array.from(starsDiv.children).forEach((s, i) => s.classList.toggle('active', i <= idx));
+      checkIfAllRated();
     };
+    els.ratingGrid.appendChild(container);
+  });
 
-    // ─── Init ────────────────────────────────────────
-    if (playerName) els.playerName.value = playerName;
-    els.totalStars.textContent = totalStars;
+  function checkIfAllRated() {
+    const rated = els.ratingGrid.querySelectorAll('.stars .active').length;
+    const toRate = els.ratingGrid.querySelectorAll('.stars').length;
+    if (rated >= toRate) els.submitRatings.style.display = 'block';
+  }
+}
 
-    auth.onAuthStateChanged(u => {
-      if (u) {
-        myUid = u.uid;
-        setStatus('Signed in');
-      } else {
-        auth.signInAnonymously().catch(console.error);
-      }
-    });
+els.submitRatings.onclick = () => {
+  const ratings = {};
+  els.ratingGrid.querySelectorAll('.stars').forEach(starsDiv => {
+    const uid = starsDiv.dataset.uid;
+    const score = Array.from(starsDiv.children).filter(s => s.classList.contains('active')).length;
+    if (score > 0) ratings[uid] = score;
+  });
+  lobbyRef.child('ratings').child(myUid).set(ratings);
+  setStatus('Ratings submitted!');
+};
 
-    // ─── Helpers ─────────────────────────────────────
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
+function showResults(results, players) {
+  showScreen('resultsScreen');
+  if (timerInterval) clearInterval(timerInterval);
 
-    function setStatus(msg) {
-      els.status.textContent = msg;
-    }
+  els.resultsList.innerHTML = Object.entries(results || {}).map(([uid, score]) => {
+    const name = players[uid] || 'Unknown';
+    const isWinner = score === Math.max(...Object.values(results));
+    return `
+      <div style="padding:14px; margin:10px 0; background:rgba(255,255,255,0.07); border-radius:14px; ${isWinner ? 'background:linear-gradient(45deg,#ffd70022,#ffea8033); color:#ffd700; font-weight:bold;' : ''}">
+        ${name}: <strong>${score} ⭐</strong> ${isWinner ? '👑 WINNER!' : ''}
+      </div>
+    `;
+  }).join('');
 
-    function genCode() {
-      return Array(4).fill().map(() => String.fromCharCode(65 + Math.random()*26|0)).join('');
-    }
+  const myScore = results[myUid] || 0;
+  totalStars += myScore;
+  els.totalStars.textContent = totalStars;
+  saveLocal();
+}
 
-    function saveLocal() {
-      localStorage.setItem('br_name', playerName);
-      localStorage.setItem('br_stars', totalStars);
-    }
+els.backToMenu.onclick = () => {
+  if (isHost && lobbyRef) lobbyRef.remove();
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('menu');
+};
 
-    // ─── Canvas ──────────────────────────────────────
-    function initCanvas() {
-      canvas = els.drawingCanvas;
-      ctx = canvas.getContext('2d');
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      const getPos = e => {
-        const r = canvas.getBoundingClientRect();
-        return {
-          x: ((e.touches?.[0]?.clientX ?? e.clientX) - r.left) * (canvas.width  / r.width),
-          y: ((e.touches?.[0]?.clientY ?? e.clientY) - r.top)  * (canvas.height / r.height)
-        };
-      };
-
-      const draw = (x,y,force=false) => {
-        if (!isDrawing && !force) return;
-        ctx.lineWidth = tool==='pencil' ? +els.pencilSize.value : +els.eraserSize.value;
-        ctx.globalCompositeOperation = tool==='eraser' ? 'destination-out' : 'source-over';
-        if (tool==='pencil') ctx.strokeStyle = els.colorPicker.value;
-
-        ctx.beginPath();
-        ctx.moveTo(lastX,lastY);
-        ctx.lineTo(x,y);
-        ctx.stroke();
-        lastX = x; lastY = y;
-      };
-
-      const down = e => { 
-        e.preventDefault(); 
-        isDrawing = true; 
-        const p = getPos(e); 
-        lastX = p.x; lastY = p.y; 
-        draw(p.x, p.y, true); 
-      };
-      const move = e => { 
-        e.preventDefault(); 
-        if (!isDrawing) return; 
-        const p = getPos(e); 
-        draw(p.x, p.y); 
-      };
-      const up   = () => isDrawing = false;
-
-      canvas.addEventListener('mousedown', down);
-      canvas.addEventListener('mousemove', move);
-      canvas.addEventListener('mouseup',   up);
-      canvas.addEventListener('mouseout',  up);
-      canvas.addEventListener('touchstart', down);
-      canvas.addEventListener('touchmove',  move);
-      canvas.addEventListener('touchend',   up);
-    }
-
-    // ─── Tool events ─────────────────────────────────
-    els.pencilBtn.onclick = () => { tool='pencil'; els.pencilBtn.classList.add('active'); els.eraserBtn.classList.remove('active'); };
-    els.eraserBtn.onclick = () => { tool='eraser'; els.eraserBtn.classList.add('active'); els.pencilBtn.classList.remove('active'); };
-    els.pencilSize.oninput = () => els.pencilSizeVal.textContent = els.pencilSize.value;
-    els.eraserSize.oninput = () => els.eraserSizeVal.textContent = els.eraserSize.value;
-    els.clearCanvas.onclick = () => {
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-    };
-
-    // ─── Menu actions ────────────────────────────────
-    els.createLobby.onclick = () => {
-      playerName = (els.playerName.value.trim() || 'SkibidiFan') .slice(0,14);
-      saveLocal();
-      setStatus('Creating lobby...');
-      createLobby();
-    };
-
-    function createLobby() {
-      let code = genCode();
-      const tryCreate = () => {
-        const ref = db.ref(`lobbies/${code}`);
-        ref.transaction(data => {
-          if (data === null) {
-            return {
-              host: myUid,
-              players: { [myUid]: playerName },
-              state: 'waiting',
-              code,
-              created: Date.now()
-            };
-          }
-          return;
-        }, (err, committed, snap) => {
-          if (err) return setStatus('Error – try again');
-          if (committed) {
-            currentLobby = code;
-            lobbyRef = ref;
-            isHost = true;
-            showMyLobbyImmediately();
-          } else {
-            code = genCode();
-            tryCreate();
-          }
-        });
-      };
-      tryCreate();
-    }
-
-    function showMyLobbyImmediately() {
-      showScreen('lobbyScreen');
-      els.lobbyCodeDisplay.textContent = currentLobby;
-      els.playersList.innerHTML = `<div class="player-tag host">👑 ${playerName}</div>`;
-      if (isHost) els.startGame.style.display = 'block';
-      setStatus('Lobby created! Waiting for friends...');
-      listenLobby();
-    }
-
-    function listenLobby() {
-      lobbyRef.on('value', snap => {
-        const data = snap.val() || {};
-        if (!data) { setStatus('Lobby disappeared'); return; }
-
-        // Update players
-        const plist = data.players || {};
-        els.playersList.innerHTML = Object.entries(plist).map(([uid,name]) => 
-          `<div class="player-tag ${uid===myUid?'host':''}">${uid===data.host?'👑 ':''}${name}</div>`
-        ).join('');
-
-        if (isHost && Object.keys(plist).length >= 2) {
-          els.startGame.style.display = 'block';
-        }
-
-        // State changes
-        if (data.state === 'drawing') enterDrawing(data.refImgIdx, data.timerStart);
-        if (data.state === 'rating')  enterRating(data.players, data.drawings);
-        if (data.state === 'results') showResults(data.results, data.players);
-      });
-    }
-
-    els.joinLobby.onclick = () => showScreen('joinScreen');
-    els.joinBtn.onclick = () => {
-      const code = els.lobbyCode.value.toUpperCase().trim();
-      if (code.length !== 4) return alert('Need 4 letters!');
-      playerName = (els.playerName.value.trim() || 'Anon') .slice(0,14);
-      saveLocal();
-      join(code);
-    };
-
-    function join(code) {
-      const ref = db.ref(`lobbies/${code}`);
-      ref.transaction(data => {
-        if (!data || data.state !== 'waiting') return;
-        if (Object.keys(data.players||{}).length >= 6) return;
-        data.players = data.players || {};
-        data.players[myUid] = playerName;
-        return data;
-      }, (err, committed) => {
-        if (committed) {
-          currentLobby = code;
-          lobbyRef = ref;
-          isHost = false;
-          showScreen('lobbyScreen');
-          listenLobby();
-        } else {
-          alert('Cannot join – full / started / not found');
-        }
-      });
-    }
-
-    els.leaveLobby.onclick = () => {
-      if (lobbyRef) lobbyRef.child('players').child(myUid).remove();
-      currentLobby = lobbyRef = null;
-      showScreen('menu');
-    };
-
-    els.startGame.onclick = () => {
-      const idx = Math.floor(Math.random() * brainrotImgs.length);
-      lobbyRef.update({
-        state: 'drawing',
-        refImgIdx: idx,
-        timerStart: Date.now()
-      });
-    };
-
-    function enterDrawing(idx, start) {
-      showScreen('drawingScreen');
-      els.refImg.src = brainrotImgs[idx];
-      els.refImg.style.display = 'block';
-      initCanvas();
-      startTimer(start);
-    }
-
-    function startTimer(startTime) {
-      const tick = () => {
-        const left = 180 - Math.floor((Date.now() - startTime)/1000);
-        if (left <= 0) {
-          els.timer.textContent = '00:00';
-          clearInterval(window.timerId);
-          return;
-        }
-        const m = Math.floor(left/60).toString().padStart(2,'0');
-        const s = (left%60).toString().padStart(2,'0');
-        els.timer.textContent = `${m}:${s}`;
-      };
-      tick();
-      window.timerId = setInterval(tick, 200);
-    }
-
-    els.submitDrawing.onclick = () => {
-      const data = canvas.toDataURL('image/png');
-      lobbyRef.child('drawings').child(myUid).set(data);
-      setStatus('Drawing sent!');
-    };
-
-    function enterRating(players, drawings) {
-      showScreen('ratingScreen');
-      els.ratingGrid.innerHTML = '';
-      let ratedCount = 0;
-      Object.entries(drawings||{}).forEach(([uid, url]) => {
-        if (uid === myUid) return;
-        const div = document.createElement('div');
-        div.style.textAlign = 'center';
-        div.innerHTML = `
-          <img src="${url}" style="width:220px;height:220px;object-fit:contain;border:3px solid var(--accent);border-radius:12px;background:#fff;"/>
-          <div class="stars" data-uid="${uid}">
-            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
-          </div>
-        `;
-        div.querySelector('.stars').onclick = e => {
-          if (!e.target.classList.contains('star')) return;
-          const idx = [...e.currentTarget.children].indexOf(e.target);
-          [...e.currentTarget.children].forEach((s,i) => s.classList.toggle('active', i<=idx));
-          ratedCount = Object.keys(players).length -1;
-          if (ratedCount > 0) els.submitRatings.style.display = 'block';
-        };
-        els.ratingGrid.appendChild(div);
-      });
-    }
-
-    els.submitRatings.onclick = () => {
-      const ratings = {};
-      els.ratingGrid.querySelectorAll('.stars').forEach(s => {
-        const uid = s.dataset.uid;
-        const score = [...s.children].filter(c=>c.classList.contains('active')).length;
-        if (score>0) ratings[uid] = score;
-      });
-      lobbyRef.child('ratings').child(myUid).set(ratings);
-      setStatus('Ratings sent!');
-    };
-
-    function showResults(results, players) {
-      showScreen('resultsScreen');
-      els.resultsList.innerHTML = Object.entries(results||{}).map(([uid,score])=> {
-        const name = players[uid] || '???';
-        const isWinner = score === Math.max(...Object.values(results));
-        return `<div style="padding:16px; margin:12px 0; background:rgba(255,255,255,0.08); border-radius:16px; ${isWinner?'background:linear-gradient(45deg,#ffd70033,#ffea8033); color:#ffd700; font-weight:900;':''}">
-          ${name}: <strong>${score} ⭐</strong> ${isWinner?'👑 WINNER!':''}
-        </div>`;
-      }).join('');
-      totalStars += results[myUid] || 0;
-      els.totalStars.textContent = totalStars;
-      saveLocal();
-    }
-
-    els.backToMenu.onclick = () => {
-      if (isHost && lobbyRef) lobbyRef.remove();
-      showScreen('menu');
-    };
-
-    // Auto-resize canvas on window change
-    window.addEventListener('resize', () => {
-      if (canvas && ctx) {
-        const temp = canvas.toDataURL();
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        const img = new Image();
-        img.src = temp;
-        img.onload = () => ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      }
-    });
+// Resize canvas when needed
+window.addEventListener('resize', () => {
+  if (canvas && ctx && els.drawingScreen.classList.contains('active')) {
+    const data = canvas.toDataURL();
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const img = new Image();
+    img.src = data;
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+});
   </script>
 </body>
 </html>
