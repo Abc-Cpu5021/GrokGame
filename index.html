@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainRot Draw - Multiplayer Drawing Battle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0c0c2a 0%, #1a1a4a 50%, #000 100%);
+      font-family: 'Orbitron', monospace;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    canvas { display: block; cursor: crosshair; }
+    .screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      text-align: center;
+      padding: 20px;
+    }
+    .screen.active { display: flex; }
+    h1 {
+      font-size: clamp(2em, 8vw, 5em);
+      margin: 0 0 30px;
+      background: linear-gradient(45deg, #ff00ff, #00ff88, #00ccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: glow 2s ease-in-out infinite alternate;
+      text-shadow: 0 0 40px #ff00ff;
+    }
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 10px #ff00ff); }
+      to { filter: drop-shadow(0 0 30px #ff00ff); }
+    }
+    .btn {
+      padding: 15px 40px;
+      font-size: 1.2em;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    }
+    .btn-primary:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(255,107,107,0.6); }
+    .btn-secondary {
+      background: linear-gradient(45deg, #a55eea, #7b68ee);
+    }
+    .btn-secondary:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(165,94,234,0.6); }
+    .btn-danger {
+      background: linear-gradient(45deg, #ff4757, #ff6b6b);
+    }
+    input, select {
+      padding: 15px;
+      font-size: 1.1em;
+      border: 2px solid #00ff88;
+      border-radius: 25px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-family: inherit;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    input::placeholder { color: rgba(255,255,255,0.7); }
+    .input-group { margin: 20px 0; }
+    .players-list {
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+      min-width: 200px;
+    }
+    .player { padding: 10px; margin: 5px 0; background: rgba(0,255,136,0.2); border-radius: 15px; }
+    .host { background: rgba(255,0,255,0.3) !important; }
+    .code-display { font-size: 3em; font-weight: 900; color: #00ff88; letter-spacing: 10px; margin: 20px 0; text-shadow: 0 0 20px #00ff88; }
+    #gameArea {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      gap: 20px;
+    }
+    #drawingCanvas { 
+      border: 3px solid #00ff88; 
+      border-radius: 20px; 
+      box-shadow: 0 0 50px #00ff88;
+      background: white;
+      max-width: 100%;
+      max-height: 60vh;
+    }
+    #refImg { 
+      max-width: 40vw; 
+      max-height: 60vh; 
+      border-radius: 20px; 
+      box-shadow: 0 0 50px #ff00ff;
+      border: 3px solid #ff00ff;
+    }
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.5);
+      padding: 20px;
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+    }
+    .tool-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      min-width: 120px;
+    }
+    .tool-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5em;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .tool-btn.active { box-shadow: 0 0 30px #00ff88; transform: scale(1.1); }
+    #pencilBtn { background: linear-gradient(#333, #666); color: #fff; }
+    #eraserBtn { background: linear-gradient(#fff, #ddd); color: #999; }
+    #colorPicker { width: 60px; height: 60px; border: none; border-radius: 50%; cursor: pointer; }
+    .slider { width: 120px; height: 5px; border-radius: 5px; background: rgba(255,255,255,0.2); outline: none; }
+    #timer { font-size: 4em; font-weight: 900; color: #00ff88; text-shadow: 0 0 30px #00ff88; margin: 20px 0; }
+    .rating-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      max-width: 90vw;
+      overflow-y: auto;
+      max-height: 70vh;
+      padding: 20px;
+    }
+    .rating-item {
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .rating-drawing { 
+      width: 200px; 
+      height: 200px; 
+      border-radius: 15px; 
+      border: 2px solid #00ff88;
+      image-rendering: pixelated;
+      margin: 0 auto 15px;
+    }
+    .stars { font-size: 2em; cursor: pointer; color: #ddd; }
+    .star.active { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+    .results-list {
+      max-height: 400px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 20px;
+    }
+    .result-item {
+      padding: 15px;
+      margin: 10px 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      font-size: 1.3em;
+    }
+    .winner { background: linear-gradient(45deg, #ffd700, #ffed4a) !important; color: #000; font-weight: 900; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+    #status { position: fixed; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px; z-index: 200; }
+    @media (max-width: 768px) {
+      .tools { flex-direction: column; }
+      #refImg { max-width: 80vw; }
+      #drawingCanvas { max-height: 50vh; }
+      .rating-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Screens -->
+  <div id="menu" class="screen active">
+    <h1>🧠 BrainRot Draw</h1>
+    <p id="totalStars">Total Stars: 0</p>
+    <div class="input-group">
+      <input id="playerName" type="text" placeholder="Enter your name" maxlength="12">
+    </div>
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+      <button id="createLobby" class="btn btn-primary">Create Lobby</button>
+      <button id="joinLobby" class="btn btn-secondary">Join Lobby</button>
+    </div>
+  </div>
+
+  <div id="joinScreen" class="screen">
+    <h1>Join Lobby</h1>
+    <div class="input-group">
+      <input id="lobbyCode" type="text" placeholder="Enter 4-letter code" maxlength="4" style="text-transform:uppercase;">
+    </div>
+    <button id="joinBtn" class="btn btn-primary">Join</button>
+  </div>
+
+  <div id="lobbyScreen" class="screen">
+    <h1>Lobby</h1>
+    <div id="lobbyCodeDisplay" class="code-display"></div>
+    <div id="playersList" class="players-list"></div>
+    <button id="startGame" class="btn btn-primary" style="display:none;">🚀 Start Game</button>
+    <button id="leaveLobby" class="btn btn-danger">Leave</button>
+  </div>
+
+  <div id="drawingScreen" class="screen">
+    <h1>Drawing Time!</h1>
+    <div id="timer" class="timer">03:00</div>
+    <div id="gameArea">
+      <div class="tools">
+        <div class="tool-group">
+          <button id="pencilBtn" class="tool-btn active">✏️</button>
+          <label>Pencil Size</label>
+          <input id="pencilSize" type="range" class="slider" min="1" max="50" value="5">
+          <span id="pencilSizeVal">5</span>
+        </div>
+        <div class="tool-group">
+          <button id="eraserBtn" class="tool-btn">🧽</button>
+          <label>Eraser Size</label>
+          <input id="eraserSize" type="range" class="slider" min="1" max="50" value="10">
+          <span id="eraserSizeVal">10</span>
+        </div>
+        <div class="tool-group">
+          <input id="colorPicker" type="color" value="#000000">
+        </div>
+        <button id="clearCanvas" class="btn btn-secondary" style="padding:10px 20px;">Clear</button>
+      </div>
+      <canvas id="drawingCanvas"></canvas>
+      <img id="refImg" style="display:none;">
+    </div>
+    <button id="submitDrawing" class="btn btn-primary" style="display:none;">Submit Drawing</button>
+  </div>
+
+  <div id="ratingScreen" class="screen">
+    <h1>Rate Drawings!</h1>
+    <p>Rate each (not your own)</p>
+    <div id="ratingGrid" class="rating-grid"></div>
+    <button id="submitRatings" class="btn btn-primary" style="display:none;">Submit Ratings</button>
+  </div>
+
+  <div id="resultsScreen" class="screen">
+    <h1>Results!</h1>
+    <div id="resultsList" class="results-list"></div>
+    <button id="backToMenu" class="btn btn-primary">Back to Menu</button>
+  </div>
+
+  <div id="status"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
+  <script>
+    // === SETUP ===
+    const firebaseConfig = {
+      // REPLACE WITH YOUR FIREBASE CONFIG!
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Brainrot reference images (public URLs)
+    const brainrotImgs = [
+      'https://i.imgflip.com/9zxkqn.jpg',
+      'https://brainrotskibidi.neocities.org/skibidi1.jpg',
+      'https://i.pinimg.com/originals/fb/fd/39/fbfd3906510504974f2a7280d81cd536.jpg',
+      'https://media.tenor.com/Ze4VJGFRfZcAAAAe/skibidi-toilet-brainrot.png',
+      'https://i.guim.co.uk/img/media/9f27b0ee9699d24b9af43cb2b806e34360b4871a/0_235_2056_1235/master/2056.jpg',
+      'https://i.imgflip.com/9dv4gr.jpg',
+      'https://gamequitters.com/wp-content/uploads/mom-confused-about-brainrot-1024x585.jpg',
+      'https://theday.co.uk/wp-content/uploads/2025/03/Skibidi.jpg',
+      'https://i.insider.com/656a5bb547f9ecb37d895332?width=700',
+      'https://images7.memedroid.com/images/UPLOADED308/65f9e3aa249e6.jpeg'
+    ];
+
+    // Game state
+    let state = 'menu';
+    let myUid = null;
+    let playerName = localStorage.getItem('brainrot_name') || '';
+    let totalStars = parseInt(localStorage.getItem('brainrot_stars') || '0');
+    let currentLobby = null;
+    let lobbyRef = null;
+    let isHost = false;
+    let drawingCtx = null;
+    let canvasSize = 512;
+    let isDrawing = false;
+    let tool = 'pencil'; // 'pencil' or 'eraser'
+    let timerInterval = null;
+    let myRatings = {};
+
+    // DOM elements
+    const screens = {
+      menu: document.getElementById('menu'),
+      join: document.getElementById('joinScreen'),
+      lobby: document.getElementById('lobbyScreen'),
+      drawing: document.getElementById('drawingScreen'),
+      rating: document.getElementById('ratingScreen'),
+      results: document.getElementById('resultsScreen')
+    };
+    const els = {
+      totalStars: document.getElementById('totalStars'),
+      playerName: document.getElementById('playerName'),
+      createLobby: document.getElementById('createLobby'),
+      joinLobby: document.getElementById('joinLobby'),
+      lobbyCode: document.getElementById('lobbyCode'),
+      joinBtn: document.getElementById('joinBtn'),
+      lobbyCodeDisplay: document.getElementById('lobbyCodeDisplay'),
+      playersList: document.getElementById('playersList'),
+      startGame: document.getElementById('startGame'),
+      leaveLobby: document.getElementById('leaveLobby'),
+      timer: document.getElementById('timer'),
+      drawingCanvas: document.getElementById('drawingCanvas'),
+      refImg: document.getElementById('refImg'),
+      pencilBtn: document.getElementById('pencilBtn'),
+      eraserBtn: document.getElementById('eraserBtn'),
+      pencilSize: document.getElementById('pencilSize'),
+      eraserSize: document.getElementById('eraserSize'),
+      pencilSizeVal: document.getElementById('pencilSizeVal'),
+      eraserSizeVal: document.getElementById('eraserSizeVal'),
+      colorPicker: document.getElementById('colorPicker'),
+      clearCanvas: document.getElementById('clearCanvas'),
+      submitDrawing: document.getElementById('submitDrawing'),
+      ratingGrid: document.getElementById('ratingGrid'),
+      submitRatings: document.getElementById('submitRatings'),
+      resultsList: document.getElementById('resultsList'),
+      backToMenu: document.getElementById('backToMenu'),
+      status: document.getElementById('status')
+    };
+
+    // === INIT ===
+    document.getElementById('totalStars').textContent = `Total Stars: ${totalStars}`;
+    if (playerName) els.playerName.value = playerName;
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        myUid = user.uid;
+        updateStatus('Signed in');
+        if (state === 'menu') showScreen('menu');
+      } else {
+        auth.signInAnonymously().catch(err => console.error('Auth error:', err));
+      }
+    });
+
+    // === UTILS ===
+    function showScreen(screenName) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[screenName].classList.add('active');
+      state = screenName;
+      updateStatus(`In ${screenName.replace('Screen', ' ')}`);
+    }
+
+    function updateStatus(msg) {
+      els.status.textContent = msg;
+    }
+
+    function generateCode() {
+      return Array.from({length:4}, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
+    }
+
+    function saveLocal() {
+      localStorage.setItem('brainrot_name', playerName);
+      localStorage.setItem('brainrot_stars', totalStars);
+    }
+
+    function setCookie(name, value, days=7) {
+      document.cookie = `${name}=${value}; path=/; max-age=${days*86400}`;
+    }
+
+    // === CANVAS SETUP ===
+    function initCanvas() {
+      const canvas = els.drawingCanvas;
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      drawingCtx = canvas.getContext('2d');
+      drawingCtx.lineCap = 'round';
+      drawingCtx.lineJoin = 'round';
+      clearCanvasFn();
+      setupDrawingEvents();
+      resizeCanvas();
+    }
+
+    function resizeCanvas() {
+      const canvas = els.drawingCanvas;
+      const rect = canvas.getBoundingClientRect();
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    }
+
+    function clearCanvasFn() {
+      drawingCtx.fillStyle = 'white';
+      drawingCtx.fillRect(0, 0, canvasSize, canvasSize);
+    }
+
+    let lastX, lastY;
+    function setupDrawingEvents() {
+      const canvas = els.drawingCanvas;
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (e.clientX || e.touches[0].clientX - rect.left) * (canvasSize / rect.width),
+          y: (e.clientY || e.touches[0].clientY - rect.top) * (canvasSize / rect.height)
+        };
+      };
+
+      const draw = (x, y) => {
+        drawingCtx.lineWidth = (tool === 'pencil' ? parseInt(els.pencilSize.value) : parseInt(els.eraserSize.value));
+        drawingCtx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+        if (tool === 'pencil') drawingCtx.strokeStyle = els.colorPicker.value;
+        drawingCtx.beginPath();
+        drawingCtx.moveTo(lastX, lastY);
+        drawingCtx.lineTo(x, y);
+        drawingCtx.stroke();
+      };
+
+      canvas.onmousedown = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        lastX = pos.x; lastY = pos.y;
+        draw(pos.x, pos.y);
+      };
+
+      canvas.onmousemove = (e) => {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        draw(pos.x, pos.y);
+        lastX = pos.x; lastY = pos.y;
+      };
+
+      canvas.onmouseup = () => { isDrawing = false; };
+      canvas.onmouseout = () => { isDrawing = false; };
+
+      // Touch
+      canvas.ontouchstart = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        lastX = pos.x; lastY = pos.y;
+        draw(pos.x, pos.y);
+      };
+      canvas.ontouchmove = (e) => {
+        e.preventDefault();
+        const pos = getPos(e);
+        draw(pos.x, pos.y);
+        lastX = pos.x; lastY = pos.y;
+      };
+      canvas.ontouchend = () => { isDrawing = false; };
+    }
+
+    // === TOOL EVENTS ===
+    els.pencilBtn.onclick = () => {
+      tool = 'pencil';
+      els.pencilBtn.classList.add('active');
+      els.eraserBtn.classList.remove('active');
+    };
+    els.eraserBtn.onclick = () => {
+      tool = 'eraser';
+      els.eraserBtn.classList.add('active');
+      els.pencilBtn.classList.remove('active');
+    };
+    els.pencilSize.oninput = () => { els.pencilSizeVal.textContent = els.pencilSize.value; };
+    els.eraserSize.oninput = () => { els.eraserSizeVal.textContent = els.eraserSize.value; };
+    els.clearCanvas.onclick = clearCanvasFn;
+
+    // === MENU ===
+    els.createLobby.onclick = () => {
+      playerName = els.playerName.value.trim() || 'Anon';
+      saveLocal();
+      createNewLobby();
+    };
+    els.joinLobby.onclick = () => showScreen('join');
+    els.joinBtn.onclick = joinLobby;
+    els.lobbyCode.onkeyup = (e) => { if (e.key === 'Enter') joinLobby(); };
+
+    function createNewLobby() {
+      let code;
+      const tryCode = () => {
+        code = generateCode();
+        const ref = db.ref(`lobbies/${code}`);
+        ref.once('value').then(snap => {
+          if (snap.exists()) {
+            tryCode();
+          } else {
+            ref.set({
+              host: myUid,
+              players: { [myUid]: playerName },
+              state: 'waiting',
+              code: code,
+              maxPlayers: 6
+            }).then(() => {
+              currentLobby = code;
+              lobbyRef = db.ref(`lobbies/${code}`);
+              isHost = true;
+              showLobby();
+            });
+          }
+        });
+      };
+      tryCode();
+    }
+
+    function joinLobby() {
+      const code = els.lobbyCode.value.toUpperCase().trim();
+      if (code.length !== 4) return alert('4 letters!');
+      playerName = els.playerName.value.trim() || 'Anon';
+      saveLocal();
+      const ref = db.ref(`lobbies/${code}`);
+      ref.once('value').then(snap => {
+        const data = snap.val();
+        if (!data || data.state !== 'waiting') {
+          alert('Lobby not found or started!');
+          return;
+        }
+        if (Object.keys(data.players || {}).length >= data.maxPlayers) {
+          alert('Lobby full!');
+          return;
+        }
+        if (data.players[myUid]) {
+          alert('Already in!');
+          return;
+        }
+        ref.child('players').child(myUid).set(playerName);
+        currentLobby = code;
+        lobbyRef = ref;
+        isHost = false;
+        showLobby();
+      });
+    }
+
+    function showLobby() {
+      showScreen('lobby');
+      els.lobbyCodeDisplay.textContent = currentLobby;
+      if (isHost) els.startGame.style.display = 'block';
+      lobbyRef.child('players').on('value', updatePlayersList);
+      lobbyRef.onDisconnect().then(() => {
+        lobbyRef.child('players').child(myUid).remove();
+      });
+    }
+
+    function updatePlayersList(snap) {
+      const players = snap.val() || {};
+      els.playersList.innerHTML = Object.entries(players).map(([uid, name]) => 
+        `<div class="player ${uid === myUid ? 'host' : ''}">${uid === myUid ? '👑 ' : ''}${name}</div>`
+      ).join('');
+      if (isHost && Object.keys(players).length >= 2) {
+        els.startGame.style.display = 'block';
+      }
+    }
+
+    els.startGame.onclick = startGame;
+    function startGame() {
+      const refImgIdx = Math.floor(Math.random() * brainrotImgs.length);
+      lobbyRef.update({
+        state: 'drawing',
+        refImgIdx,
+        timerStart: Date.now()
+      });
+    }
+
+    els.leaveLobby.onclick = () => {
+      if (lobbyRef) {
+        lobbyRef.child('players').child(myUid).remove();
+        lobbyRef.off();
+      }
+      currentLobby = null;
+      lobbyRef = null;
+      showScreen('menu');
+    };
+
+    // === LISTEN TO LOBBY ===
+    let lobbyUnlisten = null;
+    function listenToLobby() {
+      if (lobbyUnlisten) lobbyUnlisten();
+      lobbyUnlisten = lobbyRef.on('value', (snap) => {
+        const data = snap.val();
+        if (!data) {
+          alert('Lobby ended!');
+          leaveLobby();
+          return;
+        }
+        const lobbyState = data.state;
+        switch (lobbyState) {
+          case 'drawing':
+            enterDrawing(data.refImgIdx, data.timerStart);
+            break;
+          case 'submitting':
+            els.submitDrawing.style.display = 'block';
+            break;
+          case 'rating':
+            enterRating(data.players, data.drawings);
+            break;
+          case 'results':
+            showResults(data.results, data.players);
+            break;
+        }
+      });
+    }
+
+    function enterDrawing(imgIdx, startTime) {
+      showScreen('drawing');
+      els.refImg.src = brainrotImgs[imgIdx];
+      els.refImg.style.display = 'block';
+      initCanvas();
+      startTimer(startTime);
+      listenToLobby();
+    }
+
+    function startTimer(startTime) {
+      if (timerInterval) clearInterval(timerInterval);
+      const updateTimer = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const remaining = Math.max(0, 180 - elapsed);
+        const mins = Math.floor(remaining / 60);
+        const secs = Math.floor(remaining % 60);
+        els.timer.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          // Auto submit after time up? But host checks
+        }
+      };
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 100);
+    }
+
+    els.submitDrawing.onclick = () => {
+      const dataUrl = els.drawingCanvas.toDataURL('image/png');
+      lobbyRef.child('drawings').child(myUid).set(dataUrl).then(() => {
+        updateStatus('Drawing submitted!');
+      });
+    };
+
+    function enterRating(players, drawings) {
+      showScreen('rating');
+      myRatings = {};
+      els.ratingGrid.innerHTML = '';
+      Object.entries(drawings || {}).forEach(([uid, dataUrl]) => {
+        if (uid === myUid) return;
+        const div = document.createElement('div');
+        div.className = 'rating-item';
+        div.innerHTML = `
+          <img class="rating-drawing" src="${dataUrl}" alt="Drawing">
+          <div class="stars" data-uid="${uid}">⭐⭐⭐⭐⭐</div>
+        `;
+        div.querySelector('.stars').onclick = (e) => rateDrawing(uid, e);
+        els.ratingGrid.appendChild(div);
+      });
+      checkRatingsReady();
+    }
+
+    function rateDrawing(uid, e) {
+      const stars = e.target;
+      const numStars = Array.from(stars.children).filter(s => s.classList.contains('active')).length + 1;
+      Array.from(stars.children).forEach((s, i) => {
+        s.classList.toggle('active', i < numStars);
+      });
+      myRatings[uid] = numStars;
+      checkRatingsReady();
+    }
+
+    function checkRatingsReady() {
+      if (Object.keys(myRatings).length === Object.keys(lobbyRef.child('players').once('value').then(s=>s.numChildren()) -1 )) {
+        els.submitRatings.style.display = 'block';
+      }
+    }
+
+    els.submitRatings.onclick = () => {
+      lobbyRef.child('ratings').child(myUid).set(myRatings);
+    };
+
+    function showResults(results, players) {
+      showScreen('results');
+      els.resultsList.innerHTML = Object.entries(results || {}).map(([uid, score]) => {
+        const name = players[uid];
+        const cls = score === Math.max(...Object.values(results)) ? 'winner' : '';
+        return `<div class="result-item ${cls}">${name}: ${score} ⭐</div>`;
+      }).join('');
+      // Add to total
+      const myScore = results[myUid] || 0;
+      totalStars += myScore;
+      document.getElementById('totalStars').textContent = `Total Stars: ${totalStars}`;
+      saveLocal();
+    }
+
+    els.backToMenu.onclick = () => {
+      if (isHost) lobbyRef.remove(); // Clean up
+      leaveLobby();
+    };
+
+    // Auto clean old lobbies? Optional
+
+    // Resize
+    window.onresize = resizeCanvas;
+  </script>
+</body>
+</html>
